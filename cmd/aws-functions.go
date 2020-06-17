@@ -43,6 +43,11 @@ func AllocateAndAssociate(svc ec2iface.EC2API, instanceID *string) (*ec2.Allocat
 	return allocRes, assocRes, nil
 }
 
+// GetAddresses returns all VPC Elastic IP addresses in the region.
+// Inputs:
+//     sess is an Amazon EC2 service client
+// Output:
+//     If success, information about the allocation+association and nil
 func GetAddresses(sess *session.Session) (*ec2.DescribeAddressesOutput, error) {
 	// snippet-start:[ec2.go.describe_addresses.call]
 	svc := ec2.New(sess)
@@ -63,6 +68,7 @@ func GetAddresses(sess *session.Session) (*ec2.DescribeAddressesOutput, error) {
 	return result, nil
 }
 
+// Returns IP address information for given IP.  For example result.[].AllocationID.
 func GetAddressesForIP(sess *session.Session, ip []string) (*ec2.DescribeAddressesOutput, error) {
 	// snippet-start:[ec2.go.describe_addresses.call]
 	svc := ec2.New(sess)

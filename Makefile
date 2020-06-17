@@ -61,6 +61,11 @@ lint:
 test:
 	@echo "Running the tests for $(IMAGE_NAME)..."
 	@go test $(TESTARGS) ./...
+	@kubectl rollout restart deploy/byoip-mutator
+	@kubectl rollout status -w deploy/byoip-mutator
+	@kubectl delete -f deployment/sleep.yaml
+	@kubectl apply -f deployment/sleep.yaml
+	@kubectl logs deploy/byoip-mutator
 
 ############################################################
 # build section
@@ -85,11 +90,7 @@ push-image: build-image
 	@docker tag $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_REPO)/$(IMAGE_NAME):latest
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):latest
-	@kubectl rollout restart deploy/byoip-mutator
-	@kubectl rollout status -w deploy/byoip-mutator
-	@kubectl delete -f deployment/sleep.yaml
-	@kubectl apply -f deployment/sleep.yaml
-	@kubectl logs deploy/byoip-mutator
+
 
 ############################################################
 # clean section

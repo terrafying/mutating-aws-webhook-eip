@@ -19,11 +19,15 @@ In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` adm
 
 ## Build
 
-- Build and push docker image
+- Build and push docker image, run test
 
 ```
 make build image
+make test
 ```
+
+## Test
+`make test` deletes and recreates a Deployment from [deployments/sleep.yaml](./deployments/sleep.yaml), then fetches the logs from the mutator.
 
 ## How does it work?
 
