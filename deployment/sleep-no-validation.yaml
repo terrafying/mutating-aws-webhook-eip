@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: sleep
   annotations:
-    admission-webhook-example.brivo.com/validate: "false"
+    byoip-mutator.brivo.com/validate: "false"
 spec:
   replicas: 3
   selector:

@@ -1,4 +1,4 @@
 FROM alpine:latest
 
-ADD admission-webhook-example /admission-webhook-example
-ENTRYPOINT ["./admission-webhook-example"]
+ADD byoip-mutator /byoip-mutator
+ENTRYPOINT ["./byoip-mutator"]

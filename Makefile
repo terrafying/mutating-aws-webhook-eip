@@ -2,7 +2,7 @@
 # Use your own docker registry and image name for dev/test by overridding the
 # IMAGE_REPO, IMAGE_NAME and IMAGE_TAG environment variable.
 IMAGE_REPO ?= 554773729771.dkr.ecr.us-east-1.amazonaws.com
-IMAGE_NAME ?= admission-webhook-example
+IMAGE_NAME ?= byoip-mutator
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
@@ -85,11 +85,11 @@ push-image: build-image
 	@docker tag $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_REPO)/$(IMAGE_NAME):latest
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):latest
-	@kubectl rollout restart deploy/admission-webhook-example
-	@kubectl rollout status -w deploy/admission-webhook-example
+	@kubectl rollout restart deploy/byoip-mutator
+	@kubectl rollout status -w deploy/byoip-mutator
 	@kubectl delete -f deployment/sleep.yaml
 	@kubectl apply -f deployment/sleep.yaml
-	@kubectl logs deploy/admission-webhook-example
+	@kubectl logs deploy/byoip-mutator
 
 ############################################################
 # clean section

@@ -1,14 +1,14 @@
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: validation-webhook-example-cfg
+  name: byoip-mutator
   labels:
-    app: admission-webhook-example
+    app: byoip-mutator
 webhooks:
   - name: required-labels.brivo.com
     clientConfig:
       service:
-        name: admission-webhook-example-webhook-svc
+        name: byoip-mutator
         namespace: default
         path: "/validate"
       caBundle: ${CA_BUNDLE}
@@ -19,4 +19,4 @@ webhooks:
         resources: ["deployments","services"]
     namespaceSelector:
       matchLabels:
-        admission-webhook-example: enabled
+        byoip-mutator: enabled

@@ -42,11 +42,11 @@ var (
 )
 
 const (
-	admissionWebhookAnnotationValidateKey = "admission-webhook-example.brivo.com/validate"
-	// admissionWebhookAnnotationMutateKey   = "admission-webhook-example.brivo.com/mutate"
-	admissionWebhookAnnotationStatusKey = "admission-webhook-example.brivo.com/status"
+	admissionWebhookAnnotationValidateKey = "ip.brivo.com/validate"
+	// admissionWebhookAnnotationMutateKey   = "ip.brivo.com/mutate"
+	admissionWebhookAnnotationStatusKey = "ip.brivo.com/status"
 
-	brivoIPLabel     = "app.brivo.com/ip" // IP Address(es)
+	brivoIPLabel     = "ip.brivo.com/ip" // IP Address(es)
 	awsEIPAnnotation = "service.beta.kubernetes.io/aws-load-balancer-eip-allocations"
 
 	NA = "not_available"
@@ -131,7 +131,7 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	fmt.Println("added: ")
 	fmt.Println(added)
 	if ip, found := target[brivoIPLabel]; found {
-		fmt.Println("Found label " + brivoIPLabel)
+		fmt.Println("Found annotation " + brivoIPLabel)
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
 			SharedConfigState: session.SharedConfigEnable,
 		}))
@@ -147,13 +147,22 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			ipstr += *addr.AllocationId
 			ipstr += ","
 		}
-		patch = append(patch, patchOperation{
-			Op:   "add",
-			Path: "/metadata/annotations",
-			Value: map[string]string{
-				awsEIPAnnotation: ipstr,
-			},
-		})
+		added[awsEIPAnnotation] = ipstr
+		// if _, found2 := target[awsEIPAnnotation]; found2 {
+		// 	patch = append(patch, patchOperation{
+		// 		Op:    "replace",
+		// 		Path:  "/metadata/annotations/" + awsEIPAnnotation,
+		// 		Value: ipstr,
+		// 	})
+		// } else {
+		// 	patch = append(patch, patchOperation{
+		// 		Op:   "add",
+		// 		Path: "/metadata/annotations",
+		// 		Value: map[string]string{
+		// 			awsEIPAnnotation: ipstr,
+		// 		},
+		// 	})
+		// }
 	}
 	for key, value := range added {
 		if target == nil || target[key] == "" {
@@ -195,7 +204,7 @@ func createPatch(availableAnnotations map[string]string, annotations map[string]
 	var patch []patchOperation
 
 	patch = append(patch, updateAnnotation(availableAnnotations, annotations)...)
-	patch = append(patch, updateLabels(availableLabels, labels)...)
+	// patch = append(patch, updateLabels(availableLabels, labels)...)
 
 	return json.Marshal(patch)
 }
@@ -275,7 +284,6 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		availableLabels, availableAnnotations map[string]string
 		objectMeta                            *metav1.ObjectMeta
 		resourceNamespace, resourceName       string
-		ipstr                                 string
 	)
 
 	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",

@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admission-webhook-example
+  name: byoip-mutator
   labels:
-    app: admission-webhook-example
+    app: byoip-mutator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: admission-webhook-example
+      app: byoip-mutator
   template:
     metadata:
       labels:
-        app: admission-webhook-example
+        app: byoip-mutator
       annotations:
         iam.amazonaws.com/role: modify-alb-auth-role
     spec:
       containers:
-        - name: admission-webhook-example
-          image: 554773729771.dkr.ecr.us-east-1.amazonaws.com/admission-webhook-example:latest
+        - name: byoip-mutator
+          image: 554773729771.dkr.ecr.us-east-1.amazonaws.com/byoip-mutator:latest
           imagePullPolicy: Always
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem
@@ -36,4 +36,4 @@ spec:
       volumes:
         - name: webhook-certs
           secret:
-            secretName: admission-webhook-example-certs
+            secretName: byoip-mutator-certs

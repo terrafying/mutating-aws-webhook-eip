@@ -1,14 +1,14 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: admission-webhook-example-deployment-crb 
+  name: byoip-mutator-deployment-crb
   labels:
-    app: admission-webhook-example
+    app: byoip-mutator
 subjects:
 - kind: ServiceAccount
-  name: admission-webhook-example-deployment-sa
-  namespace: pipeline-infra
+  name: byoip-mutator-deployment-sa
+  namespace: default
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: admission-webhook-example-deployment-cr
+  name: byoip-mutator-deployment-cr

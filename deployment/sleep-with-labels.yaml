@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/instance: sleep
     app.kubernetes.io/version: "0.1"
     app.kubernetes.io/component: dummy
-    app.kubernetes.io/part-of: admission-webhook-example
+    app.kubernetes.io/part-of: byoip-mutator
     app.kubernetes.io/managed-by: kubernetes
 spec:
   replicas: 3
