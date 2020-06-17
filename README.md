@@ -1,9 +1,8 @@
-# Kubernetes Admission Webhook example
+# Kubernetes Mutating Webhook for EIP Allocation
 
-This tutoral shows how to build and deploy an [AdmissionWebhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks).
+This readme shows how to build and deploy this [AdmissionWebhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks).
 
-The Kubernetes [documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/) contains a common set of recommended labels that allows tools to work interoperably, describing objects in a common manner that all tools can understand. In addition to supporting tooling, the recommended labels describe applications in a way that can be queried.
-In our validating webhook example we make these labels required on deployments and services, so this webhook rejects every deployment and every service that doesn’t have these labels set. The mutating webhook in the example adds all the missing required labels with `not_available` set as the value.
+In our mutating webhook we make an annotation for `service.beta.kubernetes.io/aws-load-balancer-eip-allocations`, which instructs the AWS provider to choose an EIP Allocation based on its allocation ID.  The feature we add is that these can now be specified as `ip.brivo.com/ip: 1.2.3.4`, which are transformed into the service annotations.
 
 ## Prerequisites
 
@@ -20,19 +19,12 @@ In addition, the `MutatingAdmissionWebhook` and `ValidatingAdmissionWebhook` adm
 
 ## Build
 
-1. Setup dep
+- Build and push docker image
 
-   The repo uses [dep](https://github.com/golang/dep) as the dependency management tool for its Go codebase. Install `dep` by the following command:
 ```
-go get -u github.com/golang/dep/cmd/dep
-```
-
-2. Build and push docker image
-   
-```
-./build
+make build image
 ```
 
 ## How does it work?
 
-We have a blog post that explains webhooks in depth with the help of this example. Check [it](https://brivo.com/blog/k8s-admission-webhooks/) out!
+Here's a blog post that explains webhooks in depth with the help of a similar example. Check [it](https://brivo.com/blog/k8s-admission-webhooks/) out!

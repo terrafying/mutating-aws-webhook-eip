@@ -46,7 +46,8 @@ const (
 	// admissionWebhookAnnotationMutateKey   = "ip.brivo.com/mutate"
 	admissionWebhookAnnotationStatusKey = "ip.brivo.com/status"
 
-	brivoIPLabel     = "ip.brivo.com/ip" // IP Address(es)
+	brivoIPLabel     = "ip.brivo.com/address" // IP Address(es)
+	brivoIPRange     = "ip.brivo.com/range"
 	awsEIPAnnotation = "service.beta.kubernetes.io/aws-load-balancer-eip-allocations"
 
 	NA = "not_available"
@@ -78,30 +79,6 @@ func init() {
 	_ = v1.AddToScheme(runtimeScheme)
 }
 
-func admissionRequired(ignoredList []string, admissionAnnotationKey string, metadata *metav1.ObjectMeta) bool {
-	// skip special kubernetes system namespaces
-	for _, namespace := range ignoredList {
-		if metadata.Namespace == namespace {
-			glog.Infof("Skip validation for %v for it's in special namespace:%v", metadata.Name, metadata.Namespace)
-			return false
-		}
-	}
-
-	annotations := metadata.GetAnnotations()
-	if annotations == nil {
-		annotations = map[string]string{}
-	}
-
-	var required bool
-	switch strings.ToLower(annotations[admissionAnnotationKey]) {
-	default:
-		required = true
-	case "n", "no", "false", "off":
-		required = false
-	}
-	return required
-}
-
 func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	required := admissionRequired(ignoredList, brivoIPLabel, metadata)
 	annotations := metadata.GetAnnotations()
@@ -118,18 +95,10 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	return required
 }
 
-func validationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
-	required := admissionRequired(ignoredList, admissionWebhookAnnotationValidateKey, metadata)
-	glog.Infof("Validation policy for %v/%v: required:%v", metadata.Namespace, metadata.Name, required)
-	return required
-}
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
 	var ipstr string
-	fmt.Println("target: ")
-	fmt.Println(target)
-	fmt.Println("added: ")
-	fmt.Println(added)
+
 	if ip, found := target[brivoIPLabel]; found {
 		fmt.Println("Found annotation " + brivoIPLabel)
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -164,17 +133,14 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 		// 	})
 		// }
 	}
+	fmt.Println("target: ")
+	fmt.Println(target)
+	fmt.Println("added: ")
+	fmt.Println(added)
+	values := make(map[string]string)
+
 	for key, value := range added {
-		if target == nil || target[key] == "" {
-			target = map[string]string{}
-			patch = append(patch, patchOperation{
-				Op:   "add",
-				Path: "/metadata/annotations",
-				Value: map[string]string{
-					key: value,
-				},
-			})
-		} else {
+		if target[key] != "" {
 			patch = append(patch, patchOperation{
 				Op:    "replace",
 				Path:  "/metadata/annotations/" + key,
@@ -182,6 +148,18 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			})
 		}
 	}
+
+	// Find values that have not been added to the map
+	for key, value := range added {
+		if target == nil || target[key] == "" {
+			values[key] = value
+		}
+	}
+	patch = append(patch, patchOperation{
+		Op:    "add",
+		Path:  "/metadata/annotations",
+		Value: values,
+	})
 	return patch
 }
 
@@ -204,78 +182,13 @@ func createPatch(availableAnnotations map[string]string, annotations map[string]
 	var patch []patchOperation
 
 	patch = append(patch, updateAnnotation(availableAnnotations, annotations)...)
-	// patch = append(patch, updateLabels(availableLabels, labels)...)
+	patch = append(patch, updateLabels(availableLabels, labels)...)
 
 	return json.Marshal(patch)
 }
 
 // func createIPatch()
 
-// validate deployments and services
-func (whsvr *WebhookServer) validate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
-	req := ar.Request
-	var (
-		availableLabels                 map[string]string
-		objectMeta                      *metav1.ObjectMeta
-		resourceNamespace, resourceName string
-	)
-
-	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
-		req.Kind, req.Namespace, req.Name, resourceName, req.UID, req.Operation, req.UserInfo)
-
-	switch req.Kind.Kind {
-	case "Deployment":
-		var deployment appsv1.Deployment
-		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
-			glog.Errorf("Could not unmarshal raw object: %v", err)
-			return &v1beta1.AdmissionResponse{
-				Result: &metav1.Status{
-					Message: err.Error(),
-				},
-			}
-		}
-		resourceName, resourceNamespace, objectMeta = deployment.Name, deployment.Namespace, &deployment.ObjectMeta
-		availableLabels = deployment.Labels
-	case "Service":
-		var service corev1.Service
-		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
-			glog.Errorf("Could not unmarshal raw object: %v", err)
-			return &v1beta1.AdmissionResponse{
-				Result: &metav1.Status{
-					Message: err.Error(),
-				},
-			}
-		}
-		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
-		availableLabels = service.Labels
-	}
-
-	if !validationRequired(ignoredNamespaces, objectMeta) {
-		glog.Infof("Skipping validation for %s/%s due to policy check", resourceNamespace, resourceName)
-		return &v1beta1.AdmissionResponse{
-			Allowed: true,
-		}
-	}
-
-	allowed := true
-	var result *metav1.Status
-	glog.Info("available labels:", availableLabels)
-	glog.Info("required labels", requiredLabels)
-	for _, rl := range requiredLabels {
-		if _, ok := availableLabels[rl]; !ok {
-			allowed = false
-			result = &metav1.Status{
-				Reason: "required labels are not set",
-			}
-			break
-		}
-	}
-
-	return &v1beta1.AdmissionResponse{
-		Allowed: allowed,
-		Result:  result,
-	}
-}
 
 // main mutation process
 func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
@@ -328,8 +241,6 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "mutated"}
 	// available: labels on deploy/service
 
-	fmt.Println("availableAnnotations")
-	fmt.Println(availableAnnotations)
 	patchBytes, err := createPatch(availableAnnotations, annotations, availableLabels, addLabels)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{
