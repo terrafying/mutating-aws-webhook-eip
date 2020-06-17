@@ -5,7 +5,7 @@ metadata:
   labels:
     app: admission-webhook-example
 webhooks:
-  - name: required-labels.banzaicloud.com
+  - name: required-labels.brivo.com
     clientConfig:
       service:
         name: admission-webhook-example-webhook-svc

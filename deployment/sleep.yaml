@@ -2,8 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sleep
+  annotations:
+    app.brivo.com/ip: 52.54.99.179
+  labels:
+    app.brivo.com/ip: 52.54.99.179
 spec:
-  replicas: 3
+  replicas: 0
   selector:
     matchLabels:
       app: sleep
@@ -11,6 +15,8 @@ spec:
     metadata:
       labels:
         app: sleep
+      annotations:
+        app.brivo.com/ip: 52.54.99.179
     spec:
       containers:
       - name: sleep

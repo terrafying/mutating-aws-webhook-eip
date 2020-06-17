@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: sleep
   annotations:
-    admission-webhook-example.banzaicloud.com/validate: "false"
+    admission-webhook-example.brivo.com/validate: "false"
 spec:
   replicas: 3
   selector:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admission-webhook-example-deployment
+  name: admission-webhook-example
   labels:
     app: admission-webhook-example
 spec:
@@ -13,10 +13,12 @@ spec:
     metadata:
       labels:
         app: admission-webhook-example
+      annotations:
+        iam.amazonaws.com/role: modify-alb-auth-role
     spec:
       containers:
         - name: admission-webhook-example
-          image: martonsereg/admission-webhook-example:v1
+          image: 554773729771.dkr.ecr.us-east-1.amazonaws.com/admission-webhook-example:latest
           imagePullPolicy: Always
           args:
             - -tlsCertFile=/etc/webhook/certs/cert.pem
@@ -24,6 +26,9 @@ spec:
             - -alsologtostderr
             - -v=4
             - 2>&1
+          env:
+            - name: AWS_REGION
+              value: us-east-1
           volumeMounts:
             - name: webhook-certs
               mountPath: /etc/webhook/certs

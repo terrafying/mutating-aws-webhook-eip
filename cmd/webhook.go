@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/golang/glog"
 	"k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -33,34 +34,20 @@ var (
 		metav1.NamespacePublic,
 	}
 	requiredLabels = []string{
-		nameLabel,
-		instanceLabel,
-		versionLabel,
-		componentLabel,
-		partOfLabel,
-		managedByLabel,
+		brivoIPLabel,
 	}
 	addLabels = map[string]string{
-		nameLabel:      NA,
-		instanceLabel:  NA,
-		versionLabel:   NA,
-		componentLabel: NA,
-		partOfLabel:    NA,
-		managedByLabel: NA,
+		awsEIPAnnotation: NA,
 	}
 )
 
 const (
-	admissionWebhookAnnotationValidateKey = "admission-webhook-example.banzaicloud.com/validate"
-	admissionWebhookAnnotationMutateKey   = "admission-webhook-example.banzaicloud.com/mutate"
-	admissionWebhookAnnotationStatusKey   = "admission-webhook-example.banzaicloud.com/status"
+	admissionWebhookAnnotationValidateKey = "admission-webhook-example.brivo.com/validate"
+	// admissionWebhookAnnotationMutateKey   = "admission-webhook-example.brivo.com/mutate"
+	admissionWebhookAnnotationStatusKey = "admission-webhook-example.brivo.com/status"
 
-	nameLabel      = "app.kubernetes.io/name"
-	instanceLabel  = "app.kubernetes.io/instance"
-	versionLabel   = "app.kubernetes.io/version"
-	componentLabel = "app.kubernetes.io/component"
-	partOfLabel    = "app.kubernetes.io/part-of"
-	managedByLabel = "app.kubernetes.io/managed-by"
+	brivoIPLabel     = "app.brivo.com/ip" // IP Address(es)
+	awsEIPAnnotation = "service.beta.kubernetes.io/aws-load-balancer-eip-allocations"
 
 	NA = "not_available"
 )
@@ -116,7 +103,7 @@ func admissionRequired(ignoredList []string, admissionAnnotationKey string, meta
 }
 
 func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
-	required := admissionRequired(ignoredList, admissionWebhookAnnotationMutateKey, metadata)
+	required := admissionRequired(ignoredList, brivoIPLabel, metadata)
 	annotations := metadata.GetAnnotations()
 	if annotations == nil {
 		annotations = map[string]string{}
@@ -138,6 +125,36 @@ func validationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool 
 }
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
+	var ipstr string
+	fmt.Println("target: ")
+	fmt.Println(target)
+	fmt.Println("added: ")
+	fmt.Println(added)
+	if ip, found := target[brivoIPLabel]; found {
+		fmt.Println("Found label " + brivoIPLabel)
+		sess := session.Must(session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		}))
+		aresult, aerr := GetAddressesForIP(sess, strings.Split(ip, ","))
+		if aerr != nil {
+			fmt.Println("Got an error retrieving the Elastic IP addresses")
+			fmt.Println(aerr)
+		}
+		ipstr = ""
+		for _, addr := range aresult.Addresses {
+			fmt.Println("IP address:   ", *addr.PublicIp)
+			fmt.Println("Allocation ID:", *addr.AllocationId)
+			ipstr += *addr.AllocationId
+			ipstr += ","
+		}
+		patch = append(patch, patchOperation{
+			Op:   "add",
+			Path: "/metadata/annotations",
+			Value: map[string]string{
+				awsEIPAnnotation: ipstr,
+			},
+		})
+	}
 	for key, value := range added {
 		if target == nil || target[key] == "" {
 			target = map[string]string{}
@@ -182,6 +199,8 @@ func createPatch(availableAnnotations map[string]string, annotations map[string]
 
 	return json.Marshal(patch)
 }
+
+// func createIPatch()
 
 // validate deployments and services
 func (whsvr *WebhookServer) validate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
@@ -256,6 +275,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		availableLabels, availableAnnotations map[string]string
 		objectMeta                            *metav1.ObjectMeta
 		resourceNamespace, resourceName       string
+		ipstr                                 string
 	)
 
 	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v Name=%v (%v) UID=%v patchOperation=%v UserInfo=%v",
@@ -273,6 +293,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 			}
 		}
 		resourceName, resourceNamespace, objectMeta = deployment.Name, deployment.Namespace, &deployment.ObjectMeta
+		availableAnnotations = deployment.Annotations
 		availableLabels = deployment.Labels
 	case "Service":
 		var service corev1.Service
@@ -286,6 +307,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		}
 		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
 		availableLabels = service.Labels
+		availableAnnotations = service.Annotations
 	}
 
 	if !mutationRequired(ignoredNamespaces, objectMeta) {
@@ -296,6 +318,10 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 	}
 
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "mutated"}
+	// available: labels on deploy/service
+
+	fmt.Println("availableAnnotations")
+	fmt.Println(availableAnnotations)
 	patchBytes, err := createPatch(availableAnnotations, annotations, availableLabels, addLabels)
 	if err != nil {
 		return &v1beta1.AdmissionResponse{

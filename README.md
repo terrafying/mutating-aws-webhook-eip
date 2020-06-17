@@ -35,4 +35,4 @@ go get -u github.com/golang/dep/cmd/dep
 
 ## How does it work?
 
-We have a blog post that explains webhooks in depth with the help of this example. Check [it](https://banzaicloud.com/blog/k8s-admission-webhooks/) out!
+We have a blog post that explains webhooks in depth with the help of this example. Check [it](https://brivo.com/blog/k8s-admission-webhooks/) out!
