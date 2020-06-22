@@ -16,7 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/kubernetes/pkg/apis/core/v1"
+	v1 "k8s.io/kubernetes/pkg/apis/core/v1"
 )
 
 var (
@@ -33,12 +33,9 @@ var (
 		metav1.NamespaceSystem,
 		metav1.NamespacePublic,
 	}
-	requiredLabels = []string{
-		brivoIPLabel,
-	}
-	addLabels = map[string]string{
-		awsEIPAnnotation: NA,
-	}
+
+	// Extra labels to add
+	addLabels = map[string]string{}
 )
 
 const (
@@ -49,15 +46,13 @@ const (
 	brivoIPLabel     = "ip.brivo.com/address" // IP Address(es)
 	brivoIPRange     = "ip.brivo.com/range"
 	awsEIPAnnotation = "service.beta.kubernetes.io/aws-load-balancer-eip-allocations"
-
-	NA = "not_available"
 )
 
 type WebhookServer struct {
 	server *http.Server
 }
 
-// Webhook Server parameters
+// WhSvrParameters : Webhook Server parameters
 type WhSvrParameters struct {
 	port           int    // webhook server port
 	certFile       string // path to the x509 certificate for https
@@ -79,6 +74,7 @@ func init() {
 	_ = v1.AddToScheme(runtimeScheme)
 }
 
+// Check if we need to mutate
 func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	required := admissionRequired(ignoredList, brivoIPLabel, metadata)
 	annotations := metadata.GetAnnotations()
@@ -94,7 +90,6 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	glog.Infof("Mutation policy for %v/%v: required:%v", metadata.Namespace, metadata.Name, required)
 	return required
 }
-
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
 	var ipstr string
@@ -117,26 +112,10 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			ipstr += ","
 		}
 		added[awsEIPAnnotation] = ipstr
-		// if _, found2 := target[awsEIPAnnotation]; found2 {
-		// 	patch = append(patch, patchOperation{
-		// 		Op:    "replace",
-		// 		Path:  "/metadata/annotations/" + awsEIPAnnotation,
-		// 		Value: ipstr,
-		// 	})
-		// } else {
-		// 	patch = append(patch, patchOperation{
-		// 		Op:   "add",
-		// 		Path: "/metadata/annotations",
-		// 		Value: map[string]string{
-		// 			awsEIPAnnotation: ipstr,
-		// 		},
-		// 	})
-		// }
 	}
-	fmt.Println("target: ")
-	fmt.Println(target)
-	fmt.Println("added: ")
-	fmt.Println(added)
+	glog.Infof("target: %v", target)
+	glog.Infof("added: %v", added)
+
 	values := make(map[string]string)
 
 	for key, value := range added {
@@ -163,32 +142,16 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	return patch
 }
 
-func updateLabels(target map[string]string, added map[string]string) (patch []patchOperation) {
-	values := make(map[string]string)
-	for key, value := range added {
-		if target == nil || target[key] == "" {
-			values[key] = value
-		}
-	}
-	patch = append(patch, patchOperation{
-		Op:    "add",
-		Path:  "/metadata/labels",
-		Value: values,
-	})
-	return patch
-}
-
 func createPatch(availableAnnotations map[string]string, annotations map[string]string, availableLabels map[string]string, labels map[string]string) ([]byte, error) {
 	var patch []patchOperation
 
 	patch = append(patch, updateAnnotation(availableAnnotations, annotations)...)
-	patch = append(patch, updateLabels(availableLabels, labels)...)
+	// patch = append(patch, updateLabels(availableLabels, labels)...)
 
 	return json.Marshal(patch)
 }
 
 // func createIPatch()
-
 
 // main mutation process
 func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {

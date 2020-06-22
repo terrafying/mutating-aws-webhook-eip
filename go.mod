@@ -20,13 +20,17 @@ require (
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/json-iterator/go v0.0.0-20180228091157-3353055b2a1a // indirect
 	github.com/mailru/easyjson v0.0.0-20180311161919-f594efddfa17 // indirect
+	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180228065516-1df9eeb2bb81 // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
+	github.com/opennota/check v0.0.0-20180911053232-0c771f5545ff // indirect
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/text v0.3.0 // indirect
+	golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2 // indirect
 	gopkg.in/inf.v0 v0.9.0 // indirect
+	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	k8s.io/api v0.0.0-20180127130940-acf347b865f2
 	k8s.io/apiextensions-apiserver v0.0.0-20180314073733-9f7d28e4a66f // indirect
 	k8s.io/apimachinery v0.0.0-20180126010752-19e3f5aa3adc

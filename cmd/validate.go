@@ -6,9 +6,15 @@ import (
 
 	"github.com/golang/glog"
 	"k8s.io/api/admission/v1beta1"
-  metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-  appsv1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	requiredLabels = []string{
+		brivoIPLabel,
+	}
 )
 
 func admissionRequired(ignoredList []string, admissionAnnotationKey string, metadata *metav1.ObjectMeta) bool {
@@ -100,7 +106,6 @@ func (whsvr *WebhookServer) validate(ar *v1beta1.AdmissionReview) *v1beta1.Admis
 		Result:  result,
 	}
 }
-
 
 func validationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	required := admissionRequired(ignoredList, admissionWebhookAnnotationValidateKey, metadata)
