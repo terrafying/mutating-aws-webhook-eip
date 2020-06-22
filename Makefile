@@ -10,6 +10,7 @@ GIT_HOST ?= github.com/terrafying
 
 PWD := $(shell pwd)
 BASE_DIR := $(shell basename $(PWD))
+TEST_ENV ?= int
 
 # Keep an existing GOPATH, make a private one if it is undefined
 GOPATH_DEFAULT := $(PWD)/.go
@@ -61,11 +62,14 @@ lint:
 test:
 	@echo "Running the tests for $(IMAGE_NAME)..."
 	@go test $(TESTARGS) ./...
+
+rollout:
 	@kubectl rollout restart deploy/byoip-mutator
 	@kubectl rollout status -w deploy/byoip-mutator
-	@kubectl delete -f deployment/sleep.yaml
+	@kubectl delete -f deployment/sleep.yaml ||:
 	@kubectl apply -f deployment/sleep.yaml
 	@kubectl logs deploy/byoip-mutator
+	@kubectl get deploy/sleep -ojson | jq '.metadata.annotations'
 
 ############################################################
 # build section
@@ -90,6 +94,8 @@ push-image: build-image
 	@docker tag $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_REPO)/$(IMAGE_NAME):latest
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):latest
+	@kubectl rollout restart deploy/byoip-mutator
+
 
 
 ############################################################

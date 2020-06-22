@@ -1,5 +1,3 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
 package main
 
 import (
@@ -48,6 +46,8 @@ func AllocateIP(sess *session.Session, ip string) (*ec2.AllocateAddressOutput, e
 	return allocRes, nil
 }
 
+// PrintAWSError
+// Prints an aws-type error (they're special)
 func PrintAWSError(err error) {
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
@@ -118,15 +118,15 @@ func GetAddressOrAllocate(ip []string) (*ec2.DescribeAddressesOutput, error) {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	result, err := GetAddressesForIP(sess, ip)
-	if err != nil {
-		glog.Error("Got an error retrieving the Elastic IP addresses: ", err)
-		return nil, err
-	}
-
-	// Empty result for IP, so we can allocate it!
-	if result.Addresses == nil {
-		for _, ipaddr := range ip {
+	// check each ip, determine if already allocated
+	// if not, allocate it
+	for _, ipaddr := range ip {
+		result, err := GetAddressesForIP(sess, []string{ipaddr})
+		if err != nil {
+			glog.Error("Got an error retrieving the Elastic IP addresses: ", err)
+			return nil, err
+		}
+		if result.Addresses == nil {
 			ipresult, iperr := AllocateIP(sess, ipaddr)
 			if iperr != nil {
 				PrintAWSError(iperr)
@@ -134,12 +134,13 @@ func GetAddressOrAllocate(ip []string) (*ec2.DescribeAddressesOutput, error) {
 			glog.Info("AllocateIP result: ")
 			glog.Info(ipresult)
 		}
+	}
 
-		result, err = GetAddressesForIP(sess, ip)
-		if err != nil {
-			glog.Error("Got an error retrieving the NEW Elastic IP addresses: ", err)
-			return nil, err
-		}
+	// Finally, get IP info and return it
+	result, err := GetAddressesForIP(sess, ip)
+	if err != nil {
+		glog.Error("Got an error retrieving the Elastic IP addresses: ", err)
+		return nil, err
 	}
 	return result, nil
 }

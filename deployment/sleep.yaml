@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: sleep
   annotations:
-    ip.brivo.com/address: 52.54.99.179
+    ip.brivo.com/address: "64.35.172.6,64.35.172.7"
 spec:
   replicas: 0
   selector:

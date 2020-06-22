@@ -118,8 +118,6 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	glog.Infof("target: %v", target)
 	glog.Infof("added: %v", added)
 
-	values := make(map[string]string)
-
 	for key, value := range added {
 		if target[key] != "" {
 			patch = append(patch, patchOperation{
@@ -127,20 +125,25 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 				Path:  "/metadata/annotations/" + key,
 				Value: value,
 			})
+		} else {
+			// "~"(tilde) is encoded as "~0" and "/"(forward slash) is encoded as "~1".
+			patch = append(patch, patchOperation{
+				Op:    "add",
+				Path:  "/metadata/annotations/" + strings.ReplaceAll(key, "/", "~1"),
+				Value: value,
+			})
 		}
 	}
 
-	// Find values that have not been added to the map
-	for key, value := range added {
-		if target == nil || target[key] == "" {
-			values[key] = value
-		}
-	}
-	patch = append(patch, patchOperation{
-		Op:    "add",
-		Path:  "/metadata/annotations",
-		Value: values,
-	})
+	// values := make(map[string]string)
+	//
+	// // Find values that have not been added to the map
+	// for key, value := range added {
+	// 	if target == nil || target[key] == "" {
+	// 		values[key] = value
+	// 	}
+	// }
+
 	return patch
 }
 
