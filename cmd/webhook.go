@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/golang/glog"
 	"k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -96,10 +95,13 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 
 	if ip, found := target[brivoIPLabel]; found {
 		fmt.Println("Found annotation " + brivoIPLabel)
-		sess := session.Must(session.NewSessionWithOptions(session.Options{
-			SharedConfigState: session.SharedConfigEnable,
-		}))
-		aresult, aerr := GetAddressesForIP(sess, strings.Split(ip, ","))
+		if strings.Contains(ip, "/") {
+
+		}
+		// sess := session.Must(session.NewSessionWithOptions(session.Options{
+		// 	SharedConfigState: session.SharedConfigEnable,
+		// }))
+		aresult, aerr := GetAddressOrAllocate(strings.Split(ip, ","))
 		if aerr != nil {
 			fmt.Println("Got an error retrieving the Elastic IP addresses")
 			fmt.Println(aerr)

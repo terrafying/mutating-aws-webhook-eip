@@ -3,9 +3,11 @@ module github.com/terrafying/admission-webhook-example
 go 1.13
 
 require (
+	4d63.com/gochecknoinits v0.0.0-20200108094044-eb73b47b9fc4 // indirect
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/aws/aws-sdk-go v1.32.3
+	github.com/client9/misspell v0.3.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.6.0-rc.1.0.20180313231215-34c706e75924+incompatible // indirect
 	github.com/emicklei/go-restful v2.6.0+incompatible // indirect
@@ -14,21 +16,20 @@ require (
 	github.com/go-openapi/jsonreference v0.0.0-20161105162150-36d33bfe519e // indirect
 	github.com/go-openapi/spec v0.0.0-20180302193043-d8000b5bfbd1 // indirect
 	github.com/go-openapi/swag v0.0.0-20180302192843-ceb469cb0fdf // indirect
-	github.com/gogo/protobuf v1.0.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
-	github.com/json-iterator/go v0.0.0-20180228091157-3353055b2a1a // indirect
+	github.com/kisielk/errcheck v1.3.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20180311161919-f594efddfa17 // indirect
+	github.com/mdempsky/maligned v0.0.0-20180708014732-6e39bd26a8c8 // indirect
 	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v0.0.0-20180228065516-1df9eeb2bb81 // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opennota/check v0.0.0-20180911053232-0c771f5545ff // indirect
+	github.com/prometheus/common v0.10.0
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/text v0.3.0 // indirect
-	golang.org/x/tools v0.0.0-20200618155944-c7475b9d7fb2 // indirect
 	gopkg.in/inf.v0 v0.9.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	k8s.io/api v0.0.0-20180127130940-acf347b865f2
