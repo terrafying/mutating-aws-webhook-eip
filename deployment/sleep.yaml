@@ -19,3 +19,20 @@ spec:
         image: tutum/curl
         command: ["/bin/sleep","infinity"]
         imagePullPolicy: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: sleep
+  name: sleep
+spec:
+  ports:
+  - name: 80-80
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: sleep
+  type: LoadBalancer

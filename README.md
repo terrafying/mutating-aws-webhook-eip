@@ -2,7 +2,9 @@
 
 This readme shows how to build and deploy this [AdmissionWebhook](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks).
 
-In our mutating webhook we make an annotation for `service.beta.kubernetes.io/aws-load-balancer-eip-allocations`, which instructs the AWS provider to choose an EIP Allocation based on its allocation ID.  The feature we add is that these can now be specified as `ip.brivo.com/ip: 1.2.3.4`, which are transformed into the service annotations.
+In our mutating webhook we make an annotation for `service.beta.kubernetes.io/aws-load-balancer-eip-allocations`,
+which instructs the AWS provider to choose an EIP Allocation based on its allocation ID.  
+The feature we add is that these can now be specified as `ip.brivo.com/address: 1.2.3.4`, which are transformed into the service annotations.
 
 ## Prerequisites
 
@@ -31,4 +33,4 @@ make test
 
 ## How does it work?
 
-Here's a blog post that explains webhooks in depth with the help of a similar example. Check [it](https://brivo.com/blog/k8s-admission-webhooks/) out!
+Here's a blog post that explains webhooks in depth with the help of a similar example. Check [it](https://banzaicloud.com/blog/k8s-admission-webhooks/) out!
