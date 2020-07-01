@@ -10,7 +10,7 @@ GIT_HOST ?= github.com/terrafying
 
 PWD := $(shell pwd)
 BASE_DIR := $(shell basename $(PWD))
-TEST_ENV ?= int
+TEST_ENV ?= sdi
 
 # Keep an existing GOPATH, make a private one if it is undefined
 GOPATH_DEFAULT := $(PWD)/.go
@@ -66,10 +66,13 @@ test:
 rollout:
 	@kubectl rollout restart deploy/byoip-mutator
 	@kubectl rollout status -w deploy/byoip-mutator
-	@kubectl delete -f deployment/sleep.yaml ||:
 	@kubectl apply -f deployment/sleep.yaml
+	# Recreate sleep service
+	@kubectl delete -f deployment/sleep-svc.yaml ||:
+	@kubectl apply -f deployment/sleep-svc.yaml
 	@kubectl logs deploy/byoip-mutator
 	@kubectl get deploy/sleep -ojson | jq '.metadata.annotations'
+	@kubectl get svc/sleep -ojson | jq '.metadata.annotations'
 
 ############################################################
 # build section

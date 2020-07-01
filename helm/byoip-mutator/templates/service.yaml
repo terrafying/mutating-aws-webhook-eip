@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "byoip-mutator.fullname" . }}
+  labels:
+{{ include "byoip-mutator.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app.kubernetes.io/name: {{ template "byoip-mutator.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

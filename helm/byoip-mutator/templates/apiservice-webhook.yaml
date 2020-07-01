@@ -1,0 +1,84 @@
+{{- $tlsCrt := "" }}
+{{- $tlsKey := "" }}
+{{- $caCrt := "" }}
+{{- if .Values.certificate.generate }}
+{{- $ca := genCA "svc-cat-ca" 3650 }}
+{{- $svcName := include "byoip-mutator.fullname" . }}
+{{- $cn := printf "%s.%s.svc" $svcName .Release.Namespace }}
+{{- $altName1 := printf "%s.cluster.local" $cn }}
+{{- $altName2 := printf "%s" $cn }}
+{{- $server := genSignedCert $cn nil (list $altName1 $altName2) 365 $ca }}
+{{- $tlsCrt = b64enc $server.Cert }}
+{{- $tlsKey = b64enc $server.Key }}
+{{- $caCrt =  b64enc $ca.Cert }}
+{{- else if .Values.certificate.useCertManager }}
+{{/* do nothing with certs here. Cert-manager will handle it all */}}
+{{/* all clientConfig.caBundle will be overridden by cert-manager */}}
+{{- else }}
+{{- $tlsCrt = required "Required when certificate.generate is false" .Values.certificate.server.tls.crt }}
+{{- $tlsKey = required "Required when certificate.generate is false" .Values.certificate.server.tls.key }}
+{{- $caCrt = required "Required when certificate.generate is false" .Values.certificate.ca.crt }}
+{{- end }}
+
+{{- if (eq .Values.certificate.useCertManager false) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "byoip-mutator.servingCertificate" . }}
+  namespace: {{ .Release.Namespace }}
+data:
+  tls.crt: {{ $tlsCrt }}
+  tls.key: {{ $tlsKey }}
+  ca.crt:  {{ $caCrt }}
+{{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ template "byoip-mutator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+{{- if .Values.certificate.useCertManager }}
+  annotations:
+    cert-manager.io/inject-ca-from: "{{ .Release.Namespace }}/{{ include "byoip-mutator.servingCertificate" . }}"
+{{- end }}
+webhooks:
+- name: ip.brivo.com
+  clientConfig:
+    service:
+      namespace: {{ .Release.Namespace }}
+      name: {{ template "byoip-mutator.fullname" . }}
+      path: "/mutate"
+    caBundle: {{ $caCrt }}
+  rules:
+  - operations: [ "CREATE" ]
+    apiGroups: ["apps", ""]
+    apiVersions: ["v1"]
+    resources: ["deployments","services"]
+  failurePolicy: {{ .Values.podsFailurePolicy }}
+  namespaceSelector:
+  {{- if .Values.namespaceSelector.matchLabels }}
+    matchLabels:
+      {{- toYaml .Values.namespaceSelector.matchLabels | nindent 6 }}
+  {{- end }}
+    matchExpressions:
+    {{- if .Values.namespaceSelector.matchExpressions }}
+      {{- toYaml .Values.namespaceSelector.matchExpressions | nindent 4 }}
+    {{- end }}
+    - key: name
+      operator: NotIn
+      values:
+      - {{ .Release.Namespace }}
+{{- if semverCompare ">=1.15-0" .Capabilities.KubeVersion.GitVersion }}
+  objectSelector:
+    matchExpressions:
+    {{- if .Values.objectSelector.matchExpressions }}
+      {{- toYaml .Values.objectSelector.matchExpressions | nindent 4 }}
+    {{- end }}
+    - key: ip.brivo.com/mutate
+      operator: NotIn
+      values:
+      - skip
+{{- end }}
+{{- if semverCompare ">=1.12-0" .Capabilities.KubeVersion.GitVersion }}
+  sideEffects: {{ .Values.apiSideEffectValue }}
+{{- end }}

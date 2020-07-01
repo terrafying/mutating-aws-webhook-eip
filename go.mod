@@ -22,6 +22,7 @@ require (
 	github.com/kisielk/errcheck v1.3.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20180311161919-f594efddfa17 // indirect
 	github.com/mdempsky/maligned v0.0.0-20180708014732-6e39bd26a8c8 // indirect
+	github.com/mdempsky/unconvert v0.0.0-20200228143138-95ecdbfc0b5f // indirect
 	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -29,7 +30,7 @@ require (
 	github.com/prometheus/common v0.10.0
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/text v0.3.0 // indirect
+	github.com/walle/lll v1.0.1 // indirect
 	gopkg.in/inf.v0 v0.9.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	k8s.io/api v0.0.0-20180127130940-acf347b865f2
@@ -38,4 +39,5 @@ require (
 	k8s.io/apiserver v0.0.0-20180313225939-8e2fdf029740 // indirect
 	k8s.io/kube-openapi v0.0.0-20180216212618-50ae88d24ede // indirect
 	k8s.io/kubernetes v1.9.4
+	mvdan.cc/unparam v0.0.0-20200501210554-b37ab49443f7 // indirect
 )

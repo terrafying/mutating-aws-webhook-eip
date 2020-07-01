@@ -130,6 +130,7 @@ func GetAddressOrAllocate(ip []string) (*ec2.DescribeAddressesOutput, error) {
 			ipresult, iperr := AllocateIP(sess, ipaddr)
 			if iperr != nil {
 				PrintAWSError(iperr)
+				return nil, iperr
 			}
 			glog.Info("AllocateIP result: ")
 			glog.Info(ipresult)
