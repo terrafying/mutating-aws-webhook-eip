@@ -83,11 +83,12 @@ func TestGetAddressesForIP(t *testing.T) {
 func TestGetAddressOrAllocate(t *testing.T) {
 	if os.Getenv("AWS_PROFILE") == "" {
 		t.Log("AWS_PROFILE not set!")
-		os.Setenv("AWS_PROFILE", "brivo-int-account")
+		os.Setenv("AWS_PROFILE", "sandbox")
 	}
 
 	// BYOIP Cidr for int account: 64.35.172.0/24
-	result, err := GetAddressOrAllocate([]string{"64.35.172.6", "64.35.172.7"})
+	// for SDI account: 64.35.174.0/24
+	result, err := GetAddressOrAllocate([]string{"64.35.174.6", "64.35.174.7"})
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {

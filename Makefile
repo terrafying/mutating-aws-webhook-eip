@@ -97,7 +97,7 @@ push-image: build-image
 	@docker tag $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG) $(IMAGE_REPO)/$(IMAGE_NAME):latest
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):$(IMAGE_TAG)
 	@docker push $(IMAGE_REPO)/$(IMAGE_NAME):latest
-	@kubectl rollout restart deploy/byoip-mutator
+	# @kubectl rollout restart deploy/byoip-mutator
 
 
 
