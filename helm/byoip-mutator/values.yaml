@@ -13,6 +13,9 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# IAM Role granting access to EIP resources (allocate, describe)
+podIAMRole: eip-allocator
+
 # Namespace annotation to use byoip-mutator on
 namespaceSelector:
   matchLabels:

@@ -32,7 +32,7 @@ spec:
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        iam.amazonaws.com/role: modify-alb-auth-role
+        iam.amazonaws.com/role: {{ .Values.podIAMRole }}
     spec:
       containers:
         - name: byoip-mutator
