@@ -3,6 +3,7 @@ module github.com/terrafying/admission-webhook-example
 go 1.13
 
 require (
+	4d63.com/gochecknoglobals v0.0.0-20190306162314-7c3491d2b6ec // indirect
 	4d63.com/gochecknoinits v0.0.0-20200108094044-eb73b47b9fc4 // indirect
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
@@ -30,6 +31,7 @@ require (
 	github.com/prometheus/common v0.10.0
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stripe/safesql v0.2.0 // indirect
 	github.com/walle/lll v1.0.1 // indirect
 	gopkg.in/inf.v0 v0.9.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
