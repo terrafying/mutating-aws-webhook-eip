@@ -99,7 +99,6 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 }
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
-	var ipstr string
 
 	if ip, found := target[brivoIPLabel]; found {
 		glog.Info("Found annotation " + brivoIPLabel)
