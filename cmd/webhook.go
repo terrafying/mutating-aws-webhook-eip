@@ -79,9 +79,18 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
+	// If we don't have the brivo IP annotation, we don't need to mutate this.
+	if _, ok := annotations[brivoIPLabel]; ok {
+		glog.Info("Found brivo IP annotation.  We should modify this object.")
+		required = true
+	} else {
+		glog.Info("Did not find brivo IP annotation.  We should NOT modify this object.")
+		required = false
+	}
 	status := annotations[admissionWebhookAnnotationStatusKey]
 
 	if strings.ToLower(status) == "mutated" {
+		glog.Info("We have already mutated this object (found key status=mutated).  Skipping.")
 		required = false
 	}
 
@@ -93,31 +102,31 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	var ipstr string
 
 	if ip, found := target[brivoIPLabel]; found {
-		fmt.Println("Found annotation " + brivoIPLabel)
+		glog.Info("Found annotation " + brivoIPLabel)
 		if strings.Contains(ip, "/") {
-
+			glog.Info("Is this a CIDR? I don't know what to do with these yet... ")
 		}
 		// sess := session.Must(session.NewSessionWithOptions(session.Options{
 		// 	SharedConfigState: session.SharedConfigEnable,
 		// }))
 		aresult, aerr := GetAddressOrAllocate(strings.Split(ip, ","))
 		if aerr != nil {
-			fmt.Println("Got an error retrieving the Elastic IP addresses")
-			fmt.Println(aerr)
+			glog.Error("Got an error retrieving the Elastic IP addresses")
+			glog.Error(aerr)
 			// Set status key to failed
 			added[admissionWebhookAnnotationStatusKey] = "failed"
 		}
 		ipstr = ""
 		for _, addr := range aresult.Addresses {
-			fmt.Println("IP address:   ", *addr.PublicIp)
-			fmt.Println("Allocation ID:", *addr.AllocationId)
+			glog.Infof("IP address:    %v", *addr.PublicIp)
+			glog.Infof("Allocation ID: %v", *addr.AllocationId)
 			ipstr += *addr.AllocationId
 			ipstr += ","
 		}
 		added[awsEIPAnnotation] = ipstr
 	}
 	glog.Infof("target: %v", target)
-	glog.Infof("added: %v", added)
+	glog.Infof("added:  %v", added)
 
 	for key, value := range added {
 		if target[key] != "" {

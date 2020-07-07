@@ -32,6 +32,7 @@ require (
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/stripe/safesql v0.2.0 // indirect
+	github.com/tsenart/deadcode v0.0.0-20160724212837-210d2dc333e9 // indirect
 	github.com/walle/lll v1.0.1 // indirect
 	gopkg.in/inf.v0 v0.9.0 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
@@ -41,5 +42,7 @@ require (
 	k8s.io/apiserver v0.0.0-20180313225939-8e2fdf029740 // indirect
 	k8s.io/kube-openapi v0.0.0-20180216212618-50ae88d24ede // indirect
 	k8s.io/kubernetes v1.9.4
+	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
+	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20200501210554-b37ab49443f7 // indirect
 )

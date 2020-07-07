@@ -53,7 +53,7 @@ webhooks:
   - operations: [ "CREATE", "UPDATE" ]
     apiGroups: ["apps", ""]
     apiVersions: ["v1"]
-    resources: ["deployments","services"]
+    resources: ["services"]
   failurePolicy: {{ .Values.podsFailurePolicy }}
   namespaceSelector:
   {{- if .Values.namespaceSelector.matchLabels }}

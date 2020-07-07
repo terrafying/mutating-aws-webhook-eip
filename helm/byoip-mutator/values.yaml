@@ -22,10 +22,10 @@ namespaceSelector:
     byoip-mutator: enabled
 
 # In case of the K8s cluster version is above 1.15 objectSelector is usable
-objectSelector:
-  matchExpressions:
-  - key: ip.brivo.com/address
-    operator: Exists
+objectSelector: {}
+  # matchExpressions:
+  # - key: ip.brivo.com/address
+  #   operator: Exists
 
 customResourcesFailurePolicy: Ignore
 

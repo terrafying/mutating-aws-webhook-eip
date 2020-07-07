@@ -64,15 +64,15 @@ test:
 	@go test $(TESTARGS) ./...
 
 rollout:
-	@kubectl rollout restart deploy/byoip-mutator
-	@kubectl rollout status -w deploy/byoip-mutator
-	@kubectl apply -f deployment/sleep.yaml
+	@kubectl -n byoip rollout restart deploy/byoip-mutator
+	@kubectl -n byoip rollout status -w deploy/byoip-mutator
+	@kubectl -n byoip apply -f deployment/sleep.yaml
 	# Recreate sleep service
-	@kubectl delete -f deployment/sleep-svc.yaml ||:
-	@kubectl apply -f deployment/sleep-svc.yaml
-	@kubectl logs deploy/byoip-mutator
-	@kubectl get deploy/sleep -ojson | jq '.metadata.annotations'
-	@kubectl get svc/sleep -ojson | jq '.metadata.annotations'
+	@kubectl -n byoip delete -f deployment/sleep-svc.yaml ||:
+	@kubectl -n byoip apply -f deployment/sleep-svc.yaml
+	@kubectl -n byoip logs deploy/byoip-mutator
+	@kubectl -n byoip get deploy/sleep -ojson | jq '.metadata.annotations'
+	@kubectl -n byoip get svc/sleep -ojson | jq '.metadata.annotations'
 
 ############################################################
 # build section
