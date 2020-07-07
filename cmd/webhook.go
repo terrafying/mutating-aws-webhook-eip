@@ -116,14 +116,15 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			// Set status key to failed
 			added[admissionWebhookAnnotationStatusKey] = "failed"
 		}
-		ipstr = ""
+
+		keys := make([]string, 0, len(m))
 		for _, addr := range aresult.Addresses {
 			glog.Infof("IP address:    %v", *addr.PublicIp)
 			glog.Infof("Allocation ID: %v", *addr.AllocationId)
-			ipstr += *addr.AllocationId
-			ipstr += ","
+			keys = append(keys, *addr.AllocationId)
 		}
-		added[awsEIPAnnotation] = ipstr
+
+		added[awsEIPAnnotation] = strings.Join(keys, ",")
 	}
 	glog.Infof("target: %v", target)
 	glog.Infof("added:  %v", added)

@@ -62,10 +62,6 @@ lint:
 test:
 	@echo "Running the tests for $(IMAGE_NAME)..."
 	@go test $(TESTARGS) ./...
-
-rollout:
-	@kubectl -n byoip rollout restart deploy/byoip-mutator
-	@kubectl -n byoip rollout status -w deploy/byoip-mutator
 	@kubectl -n byoip apply -f deployment/sleep.yaml
 	# Recreate sleep service
 	@kubectl -n byoip delete -f deployment/sleep-svc.yaml ||:
@@ -73,6 +69,13 @@ rollout:
 	@kubectl -n byoip logs deploy/byoip-mutator
 	@kubectl -n byoip get deploy/sleep -ojson | jq '.metadata.annotations'
 	@kubectl -n byoip get svc/sleep -ojson | jq '.metadata.annotations'
+
+
+
+rollout:
+	@kubectl -n byoip rollout restart deploy/byoip-mutator
+	@kubectl -n byoip rollout status -w deploy/byoip-mutator
+
 
 ############################################################
 # build section
