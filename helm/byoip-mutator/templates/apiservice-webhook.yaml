@@ -50,7 +50,7 @@ webhooks:
       path: "/mutate"
     caBundle: {{ $caCrt }}
   rules:
-  - operations: [ "CREATE", "UPDATE" ]
+  - operations: [ "CREATE" ]
     apiGroups: ["apps", ""]
     apiVersions: ["v1"]
     resources: ["services"]
