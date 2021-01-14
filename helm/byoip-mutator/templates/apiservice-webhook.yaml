@@ -51,9 +51,9 @@ webhooks:
     caBundle: {{ $caCrt }}
   rules:
   - operations: [ "CREATE" ]
-    apiGroups: ["apps", ""]
-    apiVersions: ["v1"]
-    resources: ["services"]
+    apiGroups: ["apps", "extensions"]
+    apiVersions: ["v1", "v1beta1"]
+    resources: ["services", "ingresses"]
   failurePolicy: {{ .Values.podsFailurePolicy }}
   namespaceSelector:
   {{- if .Values.namespaceSelector.matchLabels }}
