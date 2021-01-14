@@ -46,8 +46,7 @@ func AllocateIP(sess *session.Session, ip string) (*ec2.AllocateAddressOutput, e
 	return allocRes, nil
 }
 
-// PrintAWSError
-// Prints an aws-type error (they're special)
+// PrintAWSError Prints an aws-type error (they're special)
 func PrintAWSError(err error) {
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {

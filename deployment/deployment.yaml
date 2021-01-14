@@ -4,6 +4,7 @@ metadata:
   name: byoip-mutator
   labels:
     app: byoip-mutator
+  namespace: byoip
 spec:
   replicas: 1
   selector:

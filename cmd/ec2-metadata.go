@@ -17,7 +17,7 @@ func GetMAC() (string, error) {
 	return get("network/interfaces/macs")
 }
 
-// LocalIPAddress returns the local IP address of the running instance.
+// GetVPCID - LocalIPAddress returns the local IP address of the running instance.
 func GetVPCID() (string, error) {
 	if os.Getenv("VPC_ID") != "" {
 		fmt.Println("Found VPC_ID in environment.")

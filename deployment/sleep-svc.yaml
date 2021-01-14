@@ -5,6 +5,7 @@ metadata:
   labels:
     app: sleep
   annotations:
+    thingy.brivo.com/testme: thingy.__BRIVOENV__.brivo.com
     ip.brivo.com/address: "64.35.172.6,64.35.172.7"
   name: sleep
 spec:

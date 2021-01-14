@@ -7,6 +7,8 @@ require (
 	4d63.com/gochecknoinits v0.0.0-20200108094044-eb73b47b9fc4 // indirect
 	github.com/PuerkitoBio/purell v1.1.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
+	github.com/alecthomas/gocyclo v0.0.0-20150208221726-aa8f8b160214 // indirect
+	github.com/alexkohler/nakedret v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.32.3
 	github.com/client9/misspell v0.3.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -20,6 +22,8 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.5 // indirect
 	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
+	github.com/gordonklaus/ineffassign v0.0.0-20200309095847-7953dde2c7bf // indirect
+	github.com/jgautheron/goconst v0.0.0-20200227150835-cda7ea3bf591 // indirect
 	github.com/kisielk/errcheck v1.3.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20180311161919-f594efddfa17 // indirect
 	github.com/mdempsky/maligned v0.0.0-20180708014732-6e39bd26a8c8 // indirect
@@ -29,6 +33,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opennota/check v0.0.0-20180911053232-0c771f5545ff // indirect
 	github.com/prometheus/common v0.10.0
+	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/spf13/pflag v1.0.0 // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/stripe/safesql v0.2.0 // indirect

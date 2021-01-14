@@ -47,6 +47,8 @@ spec:
           env:
             - name: AWS_REGION
               value: us-east-1
+            - name: ENV
+              value: {{ .Values.env }}
           volumeMounts:
             - name: webhook-certs
               mountPath: /etc/webhook/certs

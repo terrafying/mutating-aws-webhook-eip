@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang/glog"
 	"k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -34,6 +36,10 @@ var (
 
 	// Extra labels to add
 	addLabels = map[string]string{}
+
+	replacements = map[string]string{
+		"__BRIVOENV__": os.Getenv("ENV"),
+	}
 )
 
 const (
@@ -79,13 +85,19 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
-	// If we don't have the brivo IP annotation, we don't need to mutate this.
+	// If we don't have the brivo IP annotation, or any __BRIVOENV__ strings, we don't need to mutate this.
 	if _, ok := annotations[brivoIPLabel]; ok {
 		glog.Info("Found brivo IP annotation.  We should modify this object.")
 		required = true
 	} else {
 		glog.Info("Did not find brivo IP annotation.  We should NOT modify this object.")
 		required = false
+	}
+	for _, value := range annotations {
+		if strings.Contains(value, "__BRIVOENV__") {
+			glog.Infof("Found BRIVOENV in %s", value)
+			return true
+		}
 	}
 	status := annotations[admissionWebhookAnnotationStatusKey]
 
@@ -99,7 +111,12 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 }
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
-
+	for key, value := range target {
+		if strings.Contains(value, "__BRIVOENV__") {
+			added[key] = strings.Replace(value, "__BRIVOENV__", os.Getenv("ENV"), 1)
+		}
+	}
+	// If we find the brivo IP annotation, we will work our magic
 	if ip, found := target[brivoIPLabel]; found {
 		glog.Info("Found annotation " + brivoIPLabel)
 		if strings.Contains(ip, "/") {
@@ -116,13 +133,14 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			added[admissionWebhookAnnotationStatusKey] = "failed"
 		}
 
+		// Store IP allocation IDs in array
 		keys := make([]string, 0, len(aresult.Addresses))
 		for _, addr := range aresult.Addresses {
 			glog.Infof("IP address:    %v", *addr.PublicIp)
 			glog.Infof("Allocation ID: %v", *addr.AllocationId)
 			keys = append(keys, *addr.AllocationId)
 		}
-
+		// Join allocation IDs with comma for annotation
 		added[awsEIPAnnotation] = strings.Join(keys, ",")
 	}
 	glog.Infof("target: %v", target)
@@ -132,7 +150,7 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 		if target[key] != "" {
 			patch = append(patch, patchOperation{
 				Op:    "replace",
-				Path:  "/metadata/annotations/" + key,
+				Path:  "/metadata/annotations/" + strings.ReplaceAll(key, "/", "~1"),
 				Value: value,
 			})
 		} else {
@@ -144,15 +162,6 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 			})
 		}
 	}
-
-	// values := make(map[string]string)
-	//
-	// // Find values that have not been added to the map
-	// for key, value := range added {
-	// 	if target == nil || target[key] == "" {
-	// 		values[key] = value
-	// 	}
-	// }
 
 	return patch
 }
@@ -181,19 +190,19 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		req.Kind, req.Namespace, req.Name, resourceName, req.UID, req.Operation, req.UserInfo)
 
 	switch req.Kind.Kind {
-	// case "Deployment":
-	// 	var deployment appsv1.Deployment
-	// 	if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
-	// 		glog.Errorf("Could not unmarshal raw object: %v", err)
-	// 		return &v1beta1.AdmissionResponse{
-	// 			Result: &metav1.Status{
-	// 				Message: err.Error(),
-	// 			},
-	// 		}
-	// 	}
-	// 	resourceName, resourceNamespace, objectMeta = deployment.Name, deployment.Namespace, &deployment.ObjectMeta
-	// 	availableAnnotations = deployment.Annotations
-	// 	availableLabels = deployment.Labels
+	case "Deployment":
+		var deployment appsv1.Deployment
+		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
+			glog.Errorf("Could not unmarshal raw object: %v", err)
+			return &v1beta1.AdmissionResponse{
+				Result: &metav1.Status{
+					Message: err.Error(),
+				},
+			}
+		}
+		resourceName, resourceNamespace, objectMeta = deployment.Name, deployment.Namespace, &deployment.ObjectMeta
+		availableAnnotations = deployment.Annotations
+		availableLabels = deployment.Labels
 	case "Service":
 		var service corev1.Service
 		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
