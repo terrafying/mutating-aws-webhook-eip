@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	v2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/golang/glog"
 	"k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -108,6 +109,25 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 
 	glog.Infof("Mutation policy for %v/%v: required:%v", metadata.Namespace, metadata.Name, required)
 	return required
+}
+
+func updateSpec(target map[string]string, added map[string]string) (patch []patchOperation) {
+	for key, value := range target {
+		if strings.Contains(value, "__BRIVOENV__") {
+			added[key] = strings.Replace(value, "__BRIVOENV__", os.Getenv("ENV"), 1)
+		}
+	}
+	for key, value := range added {
+		if target[key] != "" {
+			patch = append(patch, patchOperation{
+				Op:    "replace",
+				Path:  "/metadata/annotations/" + strings.ReplaceAll(key, "/", "~1"),
+				Value: value,
+			})
+		}
+	}
+
+	return patch
 }
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
@@ -216,6 +236,22 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
 		availableLabels = service.Labels
 		availableAnnotations = service.Annotations
+	case "HelmRelease":
+		glog.Errorf("We see a HelmRelease, but don't know what to do with it yet")
+		// glog.Info(req.Object.Raw)
+		var helmRelease v2beta1.HelmRelease
+		if err := json.Unmarshal(req.Object.Raw, &helmRelease); err != nil {
+			glog.Errorf("Could not unmarshal raw object: %v", err)
+			return &v1beta1.AdmissionResponse{
+				Result: &metav1.Status{
+					Message: err.Error(),
+				},
+			}
+		}
+		resourceName, resourceNamespace, objectMeta = helmRelease.Name, helmRelease.Namespace, &helmRelease.ObjectMeta
+		availableLabels = helmRelease.Labels
+		availableAnnotations = helmRelease.Annotations
+
 	}
 
 	if !mutationRequired(ignoredNamespaces, objectMeta) {
@@ -225,6 +261,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		}
 	}
 
+	// Add the "mutated" annotation to let us know we've mutated this object
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "mutated"}
 	// available: labels on deploy/service
 

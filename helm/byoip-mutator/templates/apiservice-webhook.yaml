@@ -51,9 +51,9 @@ webhooks:
     caBundle: {{ $caCrt }}
   rules:
   - operations: [ "CREATE" ]
-    apiGroups: ["apps", "extensions"]
+    apiGroups: ["apps", "extensions", "helm.fluxcd.io"]
     apiVersions: ["v1", "v1beta1"]
-    resources: ["services", "ingresses"]
+    resources: ["services", "ingresses", "helmreleases"]
   failurePolicy: {{ .Values.podsFailurePolicy }}
   namespaceSelector:
   {{- if .Values.namespaceSelector.matchLabels }}
