@@ -53,6 +53,7 @@ const (
 	awsEIPAnnotation = "service.beta.kubernetes.io/aws-load-balancer-eip-allocations"
 )
 
+// WebhookServer : Something
 type WebhookServer struct {
 	server *http.Server
 }
@@ -238,7 +239,8 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		availableAnnotations = service.Annotations
 	case "HelmRelease":
 		glog.Errorf("We see a HelmRelease, but don't know what to do with it yet")
-		// glog.Info(req.Object.Raw)
+		myString := string(req.Object.Raw[:])
+		glog.Info(myString)
 		var helmRelease v2beta1.HelmRelease
 		if err := json.Unmarshal(req.Object.Raw, &helmRelease); err != nil {
 			glog.Errorf("Could not unmarshal raw object: %v", err)
