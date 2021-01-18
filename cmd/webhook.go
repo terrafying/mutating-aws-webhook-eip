@@ -98,11 +98,13 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	for _, value := range annotations {
 		if strings.Contains(value, "__BRIVOENV__") {
 			glog.Infof("Found BRIVOENV in %s", value)
+			// Shortcut to true, since we always want to mutate ENV tags.
 			return true
 		}
 	}
-	status := annotations[admissionWebhookAnnotationStatusKey]
 
+	// Honor the status: "mutated" status annotation by not mutating this anymore.
+	status := annotations[admissionWebhookAnnotationStatusKey]
 	if strings.ToLower(status) == "mutated" {
 		glog.Info("We have already mutated this object (found key status=mutated).  Skipping.")
 		required = false
@@ -250,10 +252,13 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 				},
 			}
 		}
+		glog.Info("Successfully unmarshalled HelmRelease!")
+
 		resourceName, resourceNamespace, objectMeta = helmRelease.Name, helmRelease.Namespace, &helmRelease.ObjectMeta
 		availableLabels = helmRelease.Labels
 		availableAnnotations = helmRelease.Annotations
 
+		//TODO: Figure out how to actually modify HelmRelease spec
 	}
 
 	if !mutationRequired(ignoredNamespaces, objectMeta) {
@@ -263,7 +268,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		}
 	}
 
-	// Add the "mutated" annotation to let us know we've mutated this object
+	// Add the status: "mutated" annotation to let us know we've mutated this object
 	annotations := map[string]string{admissionWebhookAnnotationStatusKey: "mutated"}
 	// available: labels on deploy/service
 

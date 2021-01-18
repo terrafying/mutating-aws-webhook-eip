@@ -49,10 +49,16 @@ webhooks:
       name: {{ template "byoip-mutator.fullname" . }}
       path: "/mutate"
     caBundle: {{ $caCrt }}
+  # Mutate on creation of services or ingresses (apply once)
+  # Mutate on modification/creation of HelmReleases (apply every time)
   rules:
   - operations: [ "CREATE" ]
-    apiGroups: ["apps", "extensions", "helm.toolkit.fluxcd.io"]
-    apiVersions: ["v1", "v2beta1"]
+    apiGroups: ["apps", "extensions"]
+    apiVersions: ["v1", "v1beta1"]
+    resources: ["services", "ingresses"]
+  - operations: [ "CREATE", "UPDATE" ]
+    apiGroups: ["helm.toolkit.fluxcd.io"]
+    apiVersions: ["v2beta1"]
     resources: ["services", "ingresses", "helmreleases"]
   failurePolicy: {{ .Values.podsFailurePolicy }}
   namespaceSelector:
