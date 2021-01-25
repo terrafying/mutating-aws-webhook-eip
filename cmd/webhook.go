@@ -189,6 +189,25 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	return patch
 }
 
+func replaceMap(a interface{}) map[string]interface{} {
+	newMap:=map[string]interface{}{}
+	json.Unmarshal(a, &newMap)
+    for k, v := range a {
+        switch v.(type) {
+        case map[string]interface{}:
+            newMap[k]=replaceMap(v.(map[string]interface{}))
+		case string:
+			if strings.Contains(v.(string), "__BRIVOENV__") {
+				replaced := strings.Replace(v.(string), "__BRIVOENV__", os.Getenv("ENV"), 1)
+				newMap[k] = replaced
+			}
+		}
+	
+
+    }
+    return newMap
+}
+
 func createPatch(availableAnnotations map[string]string, annotations map[string]string, availableLabels map[string]string, labels map[string]string) ([]byte, error) {
 	var patch []patchOperation
 
@@ -257,7 +276,15 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		resourceName, resourceNamespace, objectMeta = helmRelease.Name, helmRelease.Namespace, &helmRelease.ObjectMeta
 		availableLabels = helmRelease.Labels
 		availableAnnotations = helmRelease.Annotations
-
+		
+		glog.Info("Would modify to the following: ")
+		values, err := json.Marshal(helmRelease.Spec.Values)
+		if err != nil {
+			glog.Error(err.Error())
+		} else {
+			glog.Info(values)
+			// glog.Info(replaceMap(helmRelease.Spec.Values))
+		}
 		//TODO: Figure out how to actually modify HelmRelease spec
 	}
 
