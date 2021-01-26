@@ -53,13 +53,13 @@ webhooks:
   # Mutate on modification/creation of HelmReleases (apply every time)
   rules:
   - operations: [ "CREATE" ]
-    apiGroups: ["apps", "extensions"]
+    apiGroups: ["apps", "extensions", ""]
     apiVersions: ["v1", "v1beta1"]
     resources: ["services", "ingresses"]
   - operations: [ "CREATE", "UPDATE" ]
     apiGroups: ["helm.toolkit.fluxcd.io"]
     apiVersions: ["v2beta1"]
-    resources: ["services", "ingresses", "helmreleases"]
+    resources: ["helmreleases"]
   failurePolicy: {{ .Values.podsFailurePolicy }}
   namespaceSelector:
   {{- if .Values.namespaceSelector.matchLabels }}
