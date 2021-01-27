@@ -52,7 +52,7 @@ webhooks:
   # Mutate on creation of services or ingresses (apply once)
   # Mutate on modification/creation of HelmReleases (apply every time)
   rules:
-  - operations: [ "CREATE" ]
+  - operations: [ "CREATE", "UPDATE" ]
     apiGroups: ["apps", "extensions", ""]
     apiVersions: ["v1", "v1beta1"]
     resources: ["services", "ingresses"]

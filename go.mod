@@ -29,7 +29,7 @@ require (
 	github.com/tsenart/deadcode v0.0.0-20160724212837-210d2dc333e9 // indirect
 	github.com/walle/lll v1.0.1 // indirect
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
-	k8s.io/api v0.19.7
+	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.19.7
 	k8s.io/kubernetes v1.19.7
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect

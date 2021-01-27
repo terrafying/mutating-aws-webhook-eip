@@ -6,8 +6,8 @@ replicaCount: 1
 
 image:
   repository: 554773729771.dkr.ecr.us-east-1.amazonaws.com/byoip-mutator
-  tag: v20200701-c683b1d
-  pullPolicy: IfNotPresent
+  tag: latest
+  pullPolicy: Always
 
 imagePullSecrets: []
 nameOverride: ""

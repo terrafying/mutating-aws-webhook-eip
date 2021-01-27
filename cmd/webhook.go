@@ -14,6 +14,7 @@ import (
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensions "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -97,7 +98,12 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 		required = false
 	}
 	for _, value := range annotations {
+		if strings.Contains(value, "__BRIVOENV__") {
+			glog.Infof("Medium loop")
+		}
+		glog.Infof("Considering %s", value)
 		for k, replacement := range replacements {
+			glog.Infof("string.Contains(%s, %s)? ", value, k)
 			if strings.Contains(value, k) {
 				glog.Infof("Found %s in %s, will replace with %s later", k, value, replacement)
 				// Shortcut to true, since we always want to mutate ENV tags.
@@ -263,6 +269,19 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
 		availableLabels = service.Labels
 		availableAnnotations = service.Annotations
+	case "Ingress":
+		var ingress extensions.Ingress
+		if err := json.Unmarshal(req.Object.Raw, &ingress); err != nil {
+			glog.Errorf("Could not unmarshal raw object: %v", err)
+			return &v1beta1.AdmissionResponse{
+				Result: &metav1.Status{
+					Message: err.Error(),
+				},
+			}
+		}
+		resourceName, resourceNamespace, objectMeta = ingress.Name, ingress.Namespace, &ingress.ObjectMeta
+		availableLabels = ingress.Labels
+		availableAnnotations = ingress.Annotations
 	case "HelmRelease":
 		glog.Errorf("We see a HelmRelease, but don't know what to do with it yet")
 		myString := string(req.Object.Raw[:])
