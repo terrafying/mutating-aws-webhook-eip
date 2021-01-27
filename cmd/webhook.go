@@ -45,7 +45,7 @@ var (
 )
 
 const (
-	// admissionWebhookAnnotationValidateKey = "ip.brivo.com/validate"
+	admissionWebhookAnnotationValidateKey = "ip.brivo.com/validate"
 	// admissionWebhookAnnotationMutateKey   = "ip.brivo.com/mutate"
 	admissionWebhookAnnotationStatusKey = "ip.brivo.com/status"
 
