@@ -39,12 +39,13 @@ var (
 	addLabels = map[string]string{}
 
 	replacements = map[string]string{
-		"__BRIVOENV__": os.Getenv("ENV"),
+		"__BRIVOENV__":      os.Getenv("ENV"),
+		"brivo-env-replace": os.Getenv("ENV"), //This one is valid inside a DNS name, so we dont have to deal with admission validation
 	}
 )
 
 const (
-	admissionWebhookAnnotationValidateKey = "ip.brivo.com/validate"
+	// admissionWebhookAnnotationValidateKey = "ip.brivo.com/validate"
 	// admissionWebhookAnnotationMutateKey   = "ip.brivo.com/mutate"
 	admissionWebhookAnnotationStatusKey = "ip.brivo.com/status"
 
@@ -96,10 +97,12 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 		required = false
 	}
 	for _, value := range annotations {
-		if strings.Contains(value, "__BRIVOENV__") {
-			glog.Infof("Found BRIVOENV in %s", value)
-			// Shortcut to true, since we always want to mutate ENV tags.
-			return true
+		for k, replacement := range replacements {
+			if strings.Contains(value, k) {
+				glog.Infof("Found %s in %s, will replace with %s later", k, value, replacement)
+				// Shortcut to true, since we always want to mutate ENV tags.
+				return true
+			}
 		}
 	}
 
@@ -116,8 +119,10 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 
 func updateSpec(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range target {
-		if strings.Contains(value, "__BRIVOENV__") {
-			added[key] = strings.Replace(value, "__BRIVOENV__", os.Getenv("ENV"), 1)
+		for toReplace, replacement := range replacements {
+			if strings.Contains(value, toReplace) {
+				added[key] = strings.Replace(value, toReplace, replacement, 1)
+			}
 		}
 	}
 	for key, value := range added {
@@ -189,23 +194,23 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 	return patch
 }
 
-func replaceMap(a interface{}) map[string]interface{} {
-	newMap:=map[string]interface{}{}
-	json.Unmarshal(a, &newMap)
-    for k, v := range a {
-        switch v.(type) {
-        case map[string]interface{}:
-            newMap[k]=replaceMap(v.(map[string]interface{}))
+// UNused currently, might be wrong approach to editing Helm values
+func replaceMap(a map[string]interface{}) map[string]interface{} {
+	newMap := map[string]interface{}{}
+	// json.Unmarshal(a, &newMap)
+	for k, v := range a {
+		switch v.(type) {
+		case map[string]interface{}:
+			newMap[k] = replaceMap(v.(map[string]interface{}))
 		case string:
 			if strings.Contains(v.(string), "__BRIVOENV__") {
 				replaced := strings.Replace(v.(string), "__BRIVOENV__", os.Getenv("ENV"), 1)
 				newMap[k] = replaced
 			}
 		}
-	
 
-    }
-    return newMap
+	}
+	return newMap
 }
 
 func createPatch(availableAnnotations map[string]string, annotations map[string]string, availableLabels map[string]string, labels map[string]string) ([]byte, error) {
@@ -276,7 +281,7 @@ func (whsvr *WebhookServer) mutate(ar *v1beta1.AdmissionReview) *v1beta1.Admissi
 		resourceName, resourceNamespace, objectMeta = helmRelease.Name, helmRelease.Namespace, &helmRelease.ObjectMeta
 		availableLabels = helmRelease.Labels
 		availableAnnotations = helmRelease.Annotations
-		
+
 		glog.Info("Would modify to the following: ")
 		values, err := json.Marshal(helmRelease.Spec.Values)
 		if err != nil {
