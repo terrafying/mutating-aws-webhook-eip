@@ -103,7 +103,7 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 		}
 		glog.Infof("Considering %s", value)
 		for k, replacement := range replacements {
-			glog.Infof("string.Contains(%s, %s)? ", value, k)
+			// glog.Infof("string.Contains(%s, %s)? ", value, k)
 			if strings.Contains(value, k) {
 				glog.Infof("Found %s in %s, will replace with %s later", k, value, replacement)
 				// Shortcut to true, since we always want to mutate ENV tags.
@@ -123,9 +123,12 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta) bool {
 	return required
 }
 
+// Unused
 func updateSpec(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range target {
+		glog.Infof("Considering %s", value)
 		for toReplace, replacement := range replacements {
+			glog.Infof("string.Contains(%s, %s)? ", value, toReplace)
 			if strings.Contains(value, toReplace) {
 				added[key] = strings.Replace(value, toReplace, replacement, 1)
 			}
@@ -146,8 +149,12 @@ func updateSpec(target map[string]string, added map[string]string) (patch []patc
 
 func updateAnnotation(target map[string]string, added map[string]string) (patch []patchOperation) {
 	for key, value := range target {
-		if strings.Contains(value, "__BRIVOENV__") {
-			added[key] = strings.Replace(value, "__BRIVOENV__", os.Getenv("ENV"), 1)
+		for toReplace, replacement := range replacements {
+			glog.Infof("string.Contains(%s, %s)? ", value, toReplace)
+			if strings.Contains(value, toReplace) {
+				added[key] = strings.Replace(value, toReplace, replacement, 1)
+				glog.Infof("Found %s in %s, will replace now!", toReplace, value)
+			}
 		}
 	}
 	// If we find the brivo IP annotation, we will work our magic

@@ -1,0 +1,13 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: sleep
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: alertmanager.k8s.brivo-env-replace.brivo.net
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: sleep
+          servicePort: 80
