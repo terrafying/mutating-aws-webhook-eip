@@ -152,7 +152,7 @@ func updateAnnotation(target map[string]string, added map[string]string) (patch 
 		for toReplace, replacement := range replacements {
 			glog.Infof("string.Contains(%s, %s)? ", value, toReplace)
 			if strings.Contains(value, toReplace) {
-				added[key] = strings.Replace(value, toReplace, replacement, 1)
+				added[key] = strings.Replace(value, toReplace, replacement, -1)
 				glog.Infof("Found %s in %s, will replace now!", toReplace, value)
 			}
 		}

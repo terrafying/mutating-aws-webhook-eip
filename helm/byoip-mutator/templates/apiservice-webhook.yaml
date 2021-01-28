@@ -56,6 +56,7 @@ webhooks:
     apiGroups: ["apps", "extensions", ""]
     apiVersions: ["v1", "v1beta1"]
     resources: ["services", "ingresses"]
+    scope: "Namespaced"
   - operations: [ "CREATE", "UPDATE" ]
     apiGroups: ["helm.toolkit.fluxcd.io"]
     apiVersions: ["v2beta1"]

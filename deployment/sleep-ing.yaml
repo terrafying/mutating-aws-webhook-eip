@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: sleep
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: alertmanager.k8s.brivo-env-replace.brivo.net
+    external-dns.alpha.kubernetes.io/hostname: e.brivo-env-replace.brivo.net
 spec:
   rules:
   - http:
